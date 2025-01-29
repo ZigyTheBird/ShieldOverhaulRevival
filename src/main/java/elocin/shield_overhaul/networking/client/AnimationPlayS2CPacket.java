@@ -19,10 +19,6 @@ public class AnimationPlayS2CPacket {
 
         if (animatedPlayer == null) return;
 
-        AnimUtils.playAnimation(animatedPlayer, "bash_right");
-
-        client.execute(() -> {
-
-        });
+        client.execute(() -> AnimUtils.playAnimation(animatedPlayer, "bash_right"));
     }
 }

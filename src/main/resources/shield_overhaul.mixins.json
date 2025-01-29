@@ -12,7 +12,5 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "client": [
-    "ClientPlayerEntityMixin"
-  ]
+  "client": []
 }

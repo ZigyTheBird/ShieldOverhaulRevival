@@ -3,17 +3,21 @@ package elocin.shield_overhaul.util;
 import dev.kosmx.playerAnim.api.firstPerson.FirstPersonConfiguration;
 import dev.kosmx.playerAnim.api.firstPerson.FirstPersonMode;
 import dev.kosmx.playerAnim.api.layered.KeyframeAnimationPlayer;
+import dev.kosmx.playerAnim.api.layered.ModifierLayer;
 import dev.kosmx.playerAnim.api.layered.modifier.AbstractFadeModifier;
 import dev.kosmx.playerAnim.api.layered.modifier.SpeedModifier;
 import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
 import dev.kosmx.playerAnim.core.util.Ease;
+import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationRegistry;
 import elocin.shield_overhaul.ShieldOverhaul;
+import elocin.shield_overhaul.ShieldOverhaulClient;
 import elocin.shield_overhaul.networking.PacketRegistry;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -26,7 +30,7 @@ public class AnimUtils {
     private static SpeedModifier SPEED = new SpeedModifier(0.8f);
 
     public static void playAnimation(PlayerEntity user, String animName) {
-        var animationContainer = ((IAnimatedPlayer)user).shield_overhaul$getModAnimation();
+        ModifierLayer animationContainer = (ModifierLayer) PlayerAnimationAccess.getPlayerAssociatedData((AbstractClientPlayerEntity) user).get(ShieldOverhaulClient.animationLayerId);
         KeyframeAnimation anim = PlayerAnimationRegistry.getAnimation(new Identifier(ShieldOverhaul.MOD_ID, animName));
         var builder = anim.mutableCopy();
         anim = builder.build();
@@ -39,13 +43,8 @@ public class AnimUtils {
         buf.writeUuid(animationUser.getUuid());
 
         for (ServerPlayerEntity target : PlayerLookup.tracking((ServerWorld)animationUser.getWorld(), new ChunkPos((int)animationUser.getPos().x / 16, (int)animationUser.getPos().z / 16))) {
-
             //buf.writeString(animName);
-            if (target != animationUser) {
-                System.out.println("sent");
-                ServerPlayNetworking.send(target, PacketRegistry.ANIMATION_PLAY, buf);
-            }
-
+            ServerPlayNetworking.send(target, PacketRegistry.ANIMATION_PLAY, new PacketByteBuf(buf.copy()));
         }
     }
 
